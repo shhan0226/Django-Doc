@@ -664,6 +664,97 @@ def detail(request, question_id):
 <br><br>
 
 ## 템플릿 시스템 사용
+<br><br>
+
+## 템플릿 시스템 사용
+
+<br>
+
+### 투표 어플리케이션의 detail() 뷰 수정
+* context 변수 question이 주어졌을때, polls/detail.html이라는 템플릿이 어떤지 보기
+
+```
+$ vi polls/templates/polls/detail.html
+```
+```
+<h1>{{ question.question_text }}</h1>
+<ul>
+{% for choice in question.choice_set.all %}
+    <li>{{ choice.choice_text }}</li>
+{% endfor %}
+</ul>
+```
+
+* 템플릿 시스템은 변수의 속성에 접근하기 위해 점-탐색(dot-lookup) 문법을 사용
+* {{ question.question_text }} 보면, Django는 먼저 question 객체에 대해 사전형으로 탐색
+    * 탐색에 실패하게 되면 속성값으로 탐색
+    * 속성 탐색에도 실패한다면 리스트의 인덱스 탐색을 시도
+* {% for %} 반복 구문에서 메소드 호출
+    * question.choice_set.all은 Python에서 question.choice_set.all() 코드로 해석
+    * 반환된 Choice 객체의 반복자는 {% for %}에서 사용
+
+
+### 템플릿에서 하드코딩된 URL 제거
+* polls/index.html 템플릿 변경 전
+```
+<li><a href="/polls/{{ question.id }}/">{{ question.question_text }}</a></li>
+```
+
+* polls/index.html 템플릿 변경 후
+    * polls.urls 모듈의 path() 함수에서 인수의 이름을 정의
+    * {% url %} template 태그를 사용하여 url 설정에 정의된 특정한 URL 경로들의 의존성을 제거
+    * 이것이 polls.urls 모듈에 서술된 URL 의 정의를 탐색하는 동작
+```
+<li><a href="{% url 'detail' question.id %}">{{ question.question_text }}</a></li>
+```
+
+* 다음과 같이 'detail' 이라는 이름의 URL 이 어떻게 정의되어 있는지 확인 가능
+```
+...
+# the 'name' value as called by the {% url %} template tag
+path('<int:question_id>/', views.detail, name='detail'),
+...
+```
+* 상세 뷰의 URL을 polls/specifics/12/로 바꾸고 싶다면면, 템플릿에서 바꾸는 것이 아니라 polls/urls.py에서 바꿔야 함
+```
+...
+# added the word 'specifics'
+path('specifics/<int:question_id>/', views.detail, name='detail'),
+...
+```
+
+### URL 이름공간 결정
+* Django는 이 앱들의 URL을 구별하는 방법
+    * polls 앱은 detail이라는 뷰를 가지고 있고, 동일한 프로젝트에 블로그를 위한 앱이 있을 수도 있음
+
+* {% url %} 템플릿태그를 사용할 때, 어떤 앱의 뷰에서 URL을 생성할지 알 수 있을까요?
+    * 정답은 URLconf에 이름공간(namespace)을 추가하는 것임
+
+* polls/urls.py 파일에 app_name을 추가하여 어플리케이션의 이름공간을 설정할 수 있음
+```
+$ vi polls/urls.py
+```
+```
+from django.urls import path
+
+from . import views
+
+app_name = 'polls'
+urlpatterns = [
+    path('', views.index, name='index'),
+    path('<int:question_id>/', views.detail, name='detail'),
+    path('<int:question_id>/results/', views.results, name='results'),
+    path('<int:question_id>/vote/', views.vote, name='vote'),
+]
+```
+* polls/index.html 템플릿의 기존 내용 수정
+    * 이름공간으로 나뉘진 상세 뷰를 가리키도록 변경
+```
+$ vi polls/templates/polls/index.html
+```
+```
+<li><a href="{% url 'polls:detail' question.id %}">{{ question.question_text }}</a></li>
+```
 
 
 
