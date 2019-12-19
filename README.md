@@ -3,7 +3,7 @@
 ## Introduction
 C/C++을 이용한 다양한 기능 및 알고리즘 구현 예제
 
-<br>
+<br><br>
 
 ## Install
 
@@ -42,7 +42,7 @@ $ python manage.py runserver
 $ python manage.py runserver 0:8000
 ```
 
-<br>
+<br><br>
 
 ## 앱 만들기
  
@@ -120,10 +120,13 @@ urlpatterns = [
 * 실행
    * http://localhost:8000/polls 또는 127.0.0.1:8000/polls
 
-## 데이터베이스 설정 & 설치 <br>
+<br><br>
+
+## 데이터베이스 설정 & 설치
+
+<br>
 
 ### Django의 DB 세팅 확인
-
 * Django의 기본은 SQLite을 사용하도록 구성됨, 추가 수정 필요 없음
 ```
 $ vi mysite/settings.py
@@ -154,12 +157,15 @@ django.contrib.messages	# 메세징 프레임워크
 django.contrib.staticfiles	# 정적 파일을 관리하는 프레임워크
 ```
 
-### Django의 DB 생성
+<br>
 
+### Django의 DB 생성
 * 데이터베이스 테이블 미리 만들기
 ```
 $ python manage.py migrate
 ```
+
+<br>
 
 ### 모델(model)
 * 모델은 메타데이터를 가진 데이터베이스 구조(layout)
@@ -239,3 +245,90 @@ $ python manage.py migrate
     * (models.py 에서) 모델을 변경합니다.
     * python manage.py makemigrations을 통해 이 변경사항에 대한 마이그레이션을 만드세요.
     * python manage.py migrate 명령을 통해 변경사항을 데이터베이스에 적용하세요.
+    
+<br><br>    
+    
+## Django API
+
+<br>
+
+### API 실행
+
+* Python 쉘을 실행
+    * manaage.py는 DJANGO_SETTINGS_MODULE 환경변수
+    * 환경변수는 mysite/settings.py 파일에서 사용
+```
+$ python manage.py shell
+```
+
+* 데이터베이스 API
+```
+>>> from polls.models import Choice, Question  # Import the model classes we just wrote.
+
+# No questions are in the system yet.
+>>> Question.objects.all()
+<QuerySet []>
+
+# Create a new Question.
+# Support for time zones is enabled in the default settings file, so
+# Django expects a datetime with tzinfo for pub_date. Use timezone.now()
+# instead of datetime.datetime.now() and it will do the right thing.
+>>> from django.utils import timezone
+>>> q = Question(question_text="What's new?", pub_date=timezone.now())
+
+# Save the object into the database. You have to call save() explicitly.
+>>> q.save()
+
+# Now it has an ID.
+>>> q.id
+1
+
+# Access model field values via Python attributes.
+>>> q.question_text
+"What's new?"
+>>> q.pub_date
+datetime.datetime(2012, 2, 26, 13, 0, 0, 775217, tzinfo=<UTC>)
+
+# Change values by changing the attributes, then calling save().
+>>> q.question_text = "What's up?"
+>>> q.save()
+
+# objects.all() displays all the questions in the database.
+>>> Question.objects.all()
+<QuerySet [<Question: Question object (1)>]>
+```
+
+* Question모델 수정, __str__() 메소드를 Question과 Choice에 추가
+```
+$ vi polls/models.py
+```
+```
+from django.db import models
+
+class Question(models.Model):
+    # ...
+    def __str__(self):
+        return self.question_text
+
+class Choice(models.Model):
+    # ...
+    def __str__(self):
+        return self.choice_text
+```
+
+* Question모델 수정, __str__() 메소드에 커스텀 메소드 추가
+    * timezone은 시간대 관련 유틸 참고
+```
+$ vi polls/models.py
+```
+```
+import datetime
+from django.db import models
+from django.utils import timezone
+
+class Question(models.Model):
+    # ...
+    def was_published_recently(self):
+        return self.pub_date >= timezone.now() - datetime.timedelta(days=1)
+```
+
