@@ -456,3 +456,10 @@ from .models import Question
 
 admin.site.register(Question)
 ```
+
+
+<br><br><br>
+
+## 
+
+* https://docs.djangoproject.com/ko/3.0/
