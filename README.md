@@ -252,7 +252,7 @@ $ python manage.py migrate
 
 <br>
 
-### API 실행
+### shell 실행
 
 * Python 쉘을 실행
     * manaage.py는 DJANGO_SETTINGS_MODULE 환경변수
@@ -332,7 +332,9 @@ class Question(models.Model):
         return self.pub_date >= timezone.now() - datetime.timedelta(days=1)
 ```
 
-### API 실행
+<br>
+
+### shell 실행2
 
 * python manage.py shell 변경 사항
 
@@ -414,4 +416,43 @@ True
 >>> c.delete()
 ```
 
+<br><br>
 
+## Django 관리자
+
+<br>
+### 관리자 관리 
+
+* 관리자 생성
+```
+$ python manage.py createsuperuser
+```
+
+* username입력
+```
+Username: admin
+```
+
+* 이메일 입력
+```
+Email address: admin@example.com
+```
+
+### 관리자 사이트 변경
+
+* 개발 서버 시작
+    * http://127.0.0.1:8000/admin/ 으로 접근 가능
+```
+$ python manage.py runserver
+```
+
+* 인덱스 페이지 수정
+```
+$ vi polls/admin.py
+```
+```
+from django.contrib import admin
+from .models import Question
+
+admin.site.register(Question)
+```
