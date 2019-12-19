@@ -220,19 +220,20 @@ $ python manage.py makemigrations polls
 ```
 
 * migrate명령은 자동 데이터베이스 스키마 관리해줌
-```
-$ python manage.py sqlmigrate polls 0001
-```
     * 출력결과는 PostgreSQL에서 생성됨
     * 앱의 이름과 모델의 이름(소문자)이 조합되어 자동으로 생성
     * 앱이름 polls와 모델의 이름인 question 과 choice가 합쳐짐
     * 기본 키(ID) 자동으로 추가, 외래 키 필드명에 "_id" 이름을 자동으로 추가
+```
+$ python manage.py sqlmigrate polls 0001
+```
 
 * 데이터베이스에 모델과 관련된 테이블을 생성
+    * 적용되지 않은 마이그레이션을 모두 수집해 이를 실행
 ```
 $ python manage.py migrate
 ```
-    * 적용되지 않은 마이그레이션을 모두 수집해 이를 실행
+
 
 * 정리
     * (models.py 에서) 모델을 변경합니다.
