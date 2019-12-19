@@ -44,7 +44,7 @@ $ python manage.py runserver 0:8000
 
 <br><br>
 
-## 앱 만들기
+## 앱 만들기(1장)
  
 * polls 디렉토리 생성 (투표 앱의 집이 만들어짐)
 ```
@@ -122,7 +122,7 @@ urlpatterns = [
 
 <br><br>
 
-## 데이터베이스 설정 & 설치
+## 데이터베이스 설정 & 설치(2장)
 
 <br>
 
@@ -456,6 +456,307 @@ from .models import Question
 
 admin.site.register(Question)
 ```
+
+<br><br>
+
+## 뷰(view) (3장)
+
+* poll 어플리케이션에 4개의 view를 생성할 계획임
+    * 질문 "색인" 페이지	#최근의 질문들을 표시
+    * 질문 "세부" 페이지	#질문 내용과, 투표할 수 있는 서식을 표시
+    * 질문 "결과" 페이지	#특정 질문에 대한 결과를 표시
+    * 투표 기능	#특정 질문에 대해 특정 선택을 할 수 있는 투표 기능을 제공
+
+* URL로 부터 뷰를 얻기위해 'URLconfs'를 사용함
+    * URLconf는 URL 패턴을 뷰에 연결
+
+
+
+<br>
+
+### 뷰 추가
+
+* polls/views.py에 뷰를 추가
+```
+$ vi polls/views.py
+```
+```
+def detail(request, question_id):
+    return HttpResponse("You're looking at question %s." % question_id)
+
+def results(request, question_id):
+    response = "You're looking at the results of question %s."
+    return HttpResponse(response % question_id)
+
+def vote(request, question_id):
+    return HttpResponse("You're voting on question %s." % question_id)
+```
+
+* polls.urls 모듈에 path() 호출 추가해 연결
+```
+$ vi polls/urls.py
+```
+```
+from django.urls import path
+
+from . import views
+
+urlpatterns = [
+    # ex: /polls/
+    path('', views.index, name='index'),
+    # ex: /polls/5/
+    path('<int:question_id>/', views.detail, name='detail'),
+    # ex: /polls/5/results/
+    path('<int:question_id>/results/', views.results, name='results'),
+    # ex: /polls/5/vote/
+    path('<int:question_id>/vote/', views.vote, name='vote'),
+]
+```
+
+
+<br>
+
+### 뷰 동작
+* 요청된 페이지의 내용이 담긴 HttpResponse 객체를 반환, 혹은  Http404 같은 예외를 발생
+* 당신이 작성한 뷰는 데이터베이스의 레코드를 읽기
+* Django나 Python에서 서드파티로 제공되는 템플릿 시스템을 사용
+* PDF 생성, XML 출력, ZIP 파일 생성, python 라이브러리 사용
+
+<br>
+
+* Django에 필요한 것은 HttpResponse 객체 혹은 예외 적용
+    * Django 자체 데이터베이스 API를 사용
+    * 새로운 index() 뷰 하나를 호출 때
+    * 시스템에 저장된 5개의 투표 질문을 콤마로 분리하고 발행일에 따라 출력
+
+```
+$ vi polls/views.py
+```
+```
+from django.http import HttpResponse
+from .models import Question
+
+def index(request):
+    latest_question_list = Question.objects.order_by('-pub_date')[:5]
+    output = ', '.join([q.question_text for q in latest_question_list])
+    return HttpResponse(output)
+
+# Leave the rest of the views (detail, results, vote) unchanged
+```
+
+### TEMPLATES 설정
+* Django가 어떻게 템플릿을 불러오고 렌더링 할 것인가 기술
+* 먼저 기본 templates 디렉토리 생성
+```
+$ mkdir templates
+```
+
+* 기본 설정 파일 옵션을 수정 및 index.html 파일 생성
+```
+$ vi polls/templates/polls/index.html
+```
+```
+{% if latest_question_list %}
+    <ul>
+    {% for question in latest_question_list %}
+        <li><a href="/polls/{{ question.id }}/">{{ question.question_text }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No polls are available.</p>
+{% endif %}
+```
+
+* 템플릿 이용해, polls/views.py에 index 뷰를 업데이트
+```
+$ vi polls/views.py
+```
+```
+from django.http import HttpResponse
+from django.template import loader
+
+from .models import Question
+
+
+def index(request):
+    latest_question_list = Question.objects.order_by('-pub_date')[:5]
+    template = loader.get_template('polls/index.html')
+    context = {
+        'latest_question_list': latest_question_list,
+    }
+    return HttpResponse(template.render(context, request))
+```
+
+<br>
+
+### render()
+* 템플릿에 contex 채워 결과를 HttpResponse 객체와 돌려주는 방법
+* index() 뷰를 단축 기능으로 작성
+```
+$ vi polls/views.py
+```
+```
+from django.shortcuts import render
+from .models import Question
+
+def index(request):
+    latest_question_list = Question.objects.order_by('-pub_date')[:5]
+    context = {'latest_question_list': latest_question_list}
+    return render(request, 'polls/index.html', context)
+```
+
+<br>
+
+### 404에러 처리
+* 질문의 상세 뷰에 오류 일으키기
+```
+$ vi polls/views.py
+```
+```
+from django.http import Http404
+from django.shortcuts import render
+
+from .models import Question
+# ...
+def detail(request, question_id):
+    try:
+        question = Question.objects.get(pk=question_id)
+    except Question.DoesNotExist:
+        raise Http404("Question does not exist")
+    return render(request, 'polls/detail.html', {'question': question})
+```
+
+* 뷰는 요청된 질문의 ID가 없는 경우 Http404 예외 발생할 파일 작성
+```
+$ vi polls/templates/polls/detail.html
+```
+```
+{{ question }}
+```
+
+<br>
+
+### get_object_or_404()
+* 객체가 존재하지 않을 때, get() 사용해 Http404 예외 발생시키기
+    * detail() 뷰를 단축 기능으로 작성
+    * get_object_or_404() 함수는 Django 모델을 첫번째 인자로 받음
+    * 몇개의 키워드 인수를 모델 관리자의 get() 함수에 넘김
+    * 만약 객체가 존재하지 않을 경우, Http404 예외가 발생합니다.
+
+```
+$ vi polls/views.py
+```
+```
+from django.shortcuts import get_object_or_404, render
+
+from .models import Question
+# ...
+def detail(request, question_id):
+    question = get_object_or_404(Question, pk=question_id)
+    return render(request, 'polls/detail.html', {'question': question})
+```
+
+    * get_object_or_404() 함수처럼 동작하는 get_list_or_404() 함수 있음
+    * get() 대신 filter() 를 쓴다는 것이 다름
+    * 리스트가 비어있을 경우, Http404 예외를 발생시킴
+
+
+<br><br>
+
+## 템플릿 시스템 사용
+
+<br>
+
+### 투표 어플리케이션의 detail() 뷰 수정
+* context 변수 question이 주어졌을때, polls/detail.html이라는 템플릿이 어떤지 보기
+
+```
+$ vi polls/templates/polls/detail.html
+```
+```
+<h1>{{ question.question_text }}</h1>
+<ul>
+{% for choice in question.choice_set.all %}
+    <li>{{ choice.choice_text }}</li>
+{% endfor %}
+</ul>
+```
+
+* 템플릿 시스템은 변수의 속성에 접근하기 위해 점-탐색(dot-lookup) 문법을 사용
+* {{ question.question_text }} 보면, Django는 먼저 question 객체에 대해 사전형으로 탐색
+    * 탐색에 실패하게 되면 속성값으로 탐색
+    * 속성 탐색에도 실패한다면 리스트의 인덱스 탐색을 시도
+* {% for %} 반복 구문에서 메소드 호출
+    * question.choice_set.all은 Python에서 question.choice_set.all() 코드로 해석
+    * 반환된 Choice 객체의 반복자는 {% for %}에서 사용
+
+
+### 템플릿에서 하드코딩된 URL 제거
+* polls/index.html 템플릿 변경 전
+```
+<li><a href="/polls/{{ question.id }}/">{{ question.question_text }}</a></li>
+```
+
+* polls/index.html 템플릿 변경 후
+    * polls.urls 모듈의 path() 함수에서 인수의 이름을 정의
+    * {% url %} template 태그를 사용하여 url 설정에 정의된 특정한 URL 경로들의 의존성을 제거
+    * 이것이 polls.urls 모듈에 서술된 URL 의 정의를 탐색하는 동작
+```
+<li><a href="{% url 'detail' question.id %}">{{ question.question_text }}</a></li>
+```
+
+* 다음과 같이 'detail' 이라는 이름의 URL 이 어떻게 정의되어 있는지 확인 가능
+```
+...
+# the 'name' value as called by the {% url %} template tag
+path('<int:question_id>/', views.detail, name='detail'),
+...
+```
+* 상세 뷰의 URL을 polls/specifics/12/로 바꾸고 싶다면면, 템플릿에서 바꾸는 것이 아니라 polls/urls.py에서 바꿔야 함
+```
+...
+# added the word 'specifics'
+path('specifics/<int:question_id>/', views.detail, name='detail'),
+...
+```
+
+### URL 이름공간 결정
+* Django는 이 앱들의 URL을 구별하는 방법
+    * polls 앱은 detail이라는 뷰를 가지고 있고, 동일한 프로젝트에 블로그를 위한 앱이 있을 수도 있음
+
+* {% url %} 템플릿태그를 사용할 때, 어떤 앱의 뷰에서 URL을 생성할지 알 수 있을까요?
+    * 정답은 URLconf에 이름공간(namespace)을 추가하는 것임
+
+* polls/urls.py 파일에 app_name을 추가하여 어플리케이션의 이름공간을 설정할 수 있음
+```
+$ vi polls/urls.py
+```
+```
+from django.urls import path
+
+from . import views
+
+app_name = 'polls'
+urlpatterns = [
+    path('', views.index, name='index'),
+    path('<int:question_id>/', views.detail, name='detail'),
+    path('<int:question_id>/results/', views.results, name='results'),
+    path('<int:question_id>/vote/', views.vote, name='vote'),
+]
+```
+* polls/index.html 템플릿의 기존 내용 수정
+    * 이름공간으로 나뉘진 상세 뷰를 가리키도록 변경
+```
+$ vi polls/templates/polls/index.html
+```
+```
+<li><a href="{% url 'polls:detail' question.id %}">{{ question.question_text }}</a></li>
+```
+
+
+
+
+
 
 
 <br><br><br>
