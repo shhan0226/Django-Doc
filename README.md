@@ -44,7 +44,7 @@ $ python manage.py runserver 0:8000
 
 <br><br>
 
-## 앱 만들기
+## 앱 만들기(1장)
  
 * polls 디렉토리 생성 (투표 앱의 집이 만들어짐)
 ```
@@ -122,7 +122,7 @@ urlpatterns = [
 
 <br><br>
 
-## 데이터베이스 설정 & 설치
+## 데이터베이스 설정 & 설치(2장)
 
 <br>
 
@@ -459,7 +459,7 @@ admin.site.register(Question)
 
 <br><br>
 
-## 뷰(view)
+## 뷰(view) (3장)
 
 * poll 어플리케이션에 4개의 view를 생성할 계획임
     * 질문 "색인" 페이지	#최근의 질문들을 표시
