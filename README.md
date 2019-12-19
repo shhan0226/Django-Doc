@@ -460,6 +460,6 @@ admin.site.register(Question)
 
 <br><br><br>
 
-## 
+## Ref.
 
 * https://docs.djangoproject.com/ko/3.0/
