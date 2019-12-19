@@ -89,7 +89,9 @@ polls/
     urls.py
     views.py
 ```
-<br>
+
+* pools/urls.py 설정
+
 ```
 $ vi pools/urls.py 
 ```
@@ -104,6 +106,7 @@ urlpatterns = [
 
 * URLconf에서 polls.urls 모듈 최상으로 보기
    * include() 함수는 다른 URLconf들을 참조할 수 있도록함
+   
 ```
 $ mysite/urls.py
 ```
