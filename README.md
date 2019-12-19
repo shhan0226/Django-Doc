@@ -246,6 +246,7 @@ $ python manage.py migrate
     * python manage.py makemigrations을 통해 이 변경사항에 대한 마이그레이션을 만드세요.
     * python manage.py migrate 명령을 통해 변경사항을 데이터베이스에 적용하세요.
     
+    
 <br><br>    
     
 ## Django API
@@ -421,6 +422,7 @@ True
 ## Django 관리자
 
 <br>
+
 ### 관리자 관리 
 
 * 관리자 생성
@@ -437,6 +439,8 @@ Username: admin
 ```
 Email address: admin@example.com
 ```
+
+<br>
 
 ### 관리자 사이트 변경
 
