@@ -430,13 +430,9 @@ True
 $ python manage.py createsuperuser
 ```
 
-* username입력
+* 내용 입력(ID, E-mail, PW)
 ```
 Username: admin
-```
-
-* 이메일 입력
-```
 Email address: admin@example.com
 ```
 
