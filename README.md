@@ -93,6 +93,7 @@ polls/
 ```
 $ vi pools/urls.py 
 ```
+```
 from django.urls import path
 from . import views
 
@@ -106,14 +107,15 @@ urlpatterns = [
 ```
 $ mysite/urls.py
 ```
+
 ```
 from django.contrib import admin
 from django.urls import include, path
-
 urlpatterns = [
     path('polls/', include('polls.urls')),
     path('admin/', admin.site.urls),
 ]
 ```
+
 * 실행
    * http://localhost:8000/polls 또는 127.0.0.1:8000/polls
