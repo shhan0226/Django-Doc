@@ -664,9 +664,6 @@ def detail(request, question_id):
 <br><br>
 
 ## 템플릿 시스템 사용
-<br><br>
-
-## 템플릿 시스템 사용
 
 <br>
 
