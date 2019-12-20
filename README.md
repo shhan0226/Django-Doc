@@ -1,7 +1,7 @@
 # Django
 
 ## Introduction
-C/C++을 이용한 다양한 기능 및 알고리즘 구현 예제
+다양한 Django 프로젝트 예제를 
 
 <br><br>
 
