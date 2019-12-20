@@ -1,7 +1,7 @@
 # Django
 
 ## Introduction
-다양한 Django 프로젝트 예제를 
+다양한 Django 프로젝트 예제 구현
 
 <br><br>
 
