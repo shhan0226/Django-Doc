@@ -753,6 +753,184 @@ $ vi polls/templates/polls/index.html
 <li><a href="{% url 'polls:detail' question.id %}">{{ question.question_text }}</a></li>
 ```
 
+<br><br>
+
+## form 수정(4장)
+
+#HTML <form> 요소를 포함시켜 보자
+```
+$ vi polls/templates/polls/detail.html
+```
+```
+<h1>{{ question.question_text }}</h1>
+
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+<form action="{% url 'polls:vote' question.id %}" method="post">
+{% csrf_token %}
+{% for choice in question.choice_set.all %}
+    <input type="radio" name="choice" id="choice{{ forloop.counter }}" value="{{ choice.id }}">
+    <label for="choice{{ forloop.counter }}">{{ choice.choice_text }}</label><br>
+{% endfor %}
+<input type="submit" value="Vote">
+</form>
+```
+
+* 각 질문 선택 항목에 라디오 버튼 표시
+    * 라디오 버튼의 value는 연관 질문 선택 항목의 ID
+    * 라디오 버튼의 name은 choice
+    * 라디오 버튼 중 하나를 선택해 폼을 제출하면 POST 데이터인 choice=#을 보냄
+    * #은 선택한 항목의 ID이다.
+
+<br>
+
+* 제출된 데이터 처리 수행하는 뷰를 작성(URLconf 포함)
+```
+$ vi polls/urls.py
+```
+```
+path('<int:question_id>/vote/', views.vote, name='vote'),
+```
+
+* vote()함수를 가상으로 만들어 구현
+```
+$ vi polls/views.py
+```
+```
+from django.http import HttpResponse, HttpResponseRedirect
+from django.shortcuts import get_object_or_404, render
+from django.urls import reverse
+
+from .models import Choice, Question
+# ...
+def vote(request, question_id):
+    question = get_object_or_404(Question, pk=question_id)
+    try:
+        selected_choice = question.choice_set.get(pk=request.POST['choice'])
+    except (KeyError, Choice.DoesNotExist):
+        # Redisplay the question voting form.
+        return render(request, 'polls/detail.html', {
+            'question': question,
+            'error_message': "You didn't select a choice.",
+        })
+    else:
+        selected_choice.votes += 1
+        selected_choice.save()
+        # Always return an HttpResponseRedirect after successfully dealing
+        # with POST data. This prevents data from being posted twice if a
+        # user hits the Back button.
+        return HttpResponseRedirect(reverse('polls:results', args=(question.id,)))
+```
+
+* request.POST는 키로 전송된 자료에 접근할 수 있도록 해주는 사전과 같은 객체
+    * request.POST['choice'] 는 선택된 설문의 ID를 문자열로 반환
+    * request.POST 의 값은 항상 문자열
+    *  GET 자료에 접근하기 위해 request.GET 를 제공
+    *  POST 요청을 통해서만 자료가 수정되게하기 위해서, 명시적으로 코드에 request.POST 를 사용
+
+*  POST 자료에 choice 가 없으면, request.POST['choice'] 는 KeyError 발생
+    * KeyError 를 체크하고, choice가 주어지지 않은 경우에는 에러 메시지와 설문조사 폼을 보여줌
+
+* 설문지의 수가 증가한 이후에, 코드는 일반 HttpResponse 가 아닌 HttpResponseRedirect 를 반환
+    * HttpResponseRedirect 는 하나의 인수를 받음
+    * 그 인수는 사용자가 재전송될 URL 임
+
+* 예제에서 HttpResponseRedirect 생성자 안에서 reverse() 함수를 사용
+    * 이 함수는 뷰 함수에서 URL을 하드코딩하지 않도록 도움
+    * 제어를 전달하기 원하는 뷰의 이름을, URL패턴의 변수부분을 조합해서 해당 뷰를 가리킴
+    * 이 reverse() 호출은 아래와 같은 문자열을 반환
+        * 3은 question.id 값, 리디렉션된 URL은 최종 페이지 표시 위해 'results' 뷰를 호출
+```
+'/polls/3/results/'
+```
+* HttpRequest 객체 참조
+    * https://docs.djangoproject.com/ko/3.0/ref/request-response/
+
+<br>
+
+* vote() 뷰는 설문조사 결과 페이지로 리다이렉트함
+```
+$ vi polls/views.py
+```
+```
+from django.shortcuts import get_object_or_404, render
+
+def results(request, question_id):
+    question = get_object_or_404(Question, pk=question_id)
+    return render(request, 'polls/results.html', {'question': question})
+```
+
+* results.html 템플릿 수정
+```
+$ vi polls/templates/polls/results.html¶
+```
+```
+<h1>{{ question.question_text }}</h1>
+
+<ul>
+{% for choice in question.choice_set.all %}
+    <li>{{ choice.choice_text }} -- {{ choice.votes }} vote{{ choice.votes|pluralize }}</li>
+{% endfor %}
+</ul>
+
+<a href="{% url 'polls:detail' question.id %}">Vote again?</a>
+```
+
+# 제너릭 뷰 사용하기
+* URLconf 수정
+* 두 번째와 세 번째 패턴의 경로 문자열에서 일치하는 패턴들의 이름이 <question_id>에서 <pk>로 변경
+```
+$vi polls/urls.py
+```
+```
+from django.urls import path
+
+from . import views
+
+app_name = 'polls'
+urlpatterns = [
+    path('', views.IndexView.as_view(), name='index'),
+    path('<int:pk>/', views.DetailView.as_view(), name='detail'),
+    path('<int:pk>/results/', views.ResultsView.as_view(), name='results'),
+    path('<int:question_id>/vote/', views.vote, name='vote'),
+]
+```
+
+* index, detail, results뷰를 제거하고 장고의 일반적인 뷰를 대신 사용
+```
+$ vi polls/views.py¶
+```
+```
+from django.http import HttpResponseRedirect
+from django.shortcuts import get_object_or_404, render
+from django.urls import reverse
+from django.views import generic
+
+from .models import Choice, Question
+
+
+class IndexView(generic.ListView):
+    template_name = 'polls/index.html'
+    context_object_name = 'latest_question_list'
+
+    def get_queryset(self):
+        """Return the last five published questions."""
+        return Question.objects.order_by('-pub_date')[:5]
+
+
+class DetailView(generic.DetailView):
+    model = Question
+    template_name = 'polls/detail.html'
+
+
+class ResultsView(generic.DetailView):
+    model = Question
+    template_name = 'polls/results.html'
+
+
+def vote(request, question_id):
+    ... # same as above, no changes needed.
+```
 
 
 
