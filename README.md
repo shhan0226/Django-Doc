@@ -44,7 +44,7 @@ $ python manage.py runserver 0:8000
 
 <br><br>
 
-## 앱 만들기(1장)
+## mysite - 앱 만들기(1장) 
  
 * polls 디렉토리 생성 (투표 앱의 집이 만들어짐)
 ```
@@ -122,7 +122,7 @@ urlpatterns = [
 
 <br><br>
 
-## 데이터베이스 설정 & 설치(2장)
+## mysite - 데이터베이스 설정 & 설치(2장)
 
 <br>
 
@@ -755,7 +755,7 @@ $ vi polls/templates/polls/index.html
 
 <br><br>
 
-## form 수정(4장)
+## mysite - form 수정(4장)
 
 #HTML <form> 요소를 포함시켜 보자
 ```
@@ -876,7 +876,7 @@ $ vi polls/templates/polls/results.html¶
 <a href="{% url 'polls:detail' question.id %}">Vote again?</a>
 ```
 
-# 제너릭 뷰 사용하기
+### 제너릭 뷰 사용하기
 * URLconf 수정
 * 두 번째와 세 번째 패턴의 경로 문자열에서 일치하는 패턴들의 이름이 <question_id>에서 <pk>로 변경
 ```
@@ -898,7 +898,7 @@ urlpatterns = [
 
 * index, detail, results뷰를 제거하고 장고의 일반적인 뷰를 대신 사용
 ```
-$ vi polls/views.py¶
+$ vi polls/views.py
 ```
 ```
 from django.http import HttpResponseRedirect
@@ -940,5 +940,7 @@ def vote(request, question_id):
 <br><br><br>
 
 ## Ref.
-
+### mysite
 * https://docs.djangoproject.com/ko/3.0/
+
+### 
