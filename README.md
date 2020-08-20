@@ -1,6 +1,7 @@
 # Django
 ## Introduction
-다양한 Django 프로젝트 예제 구현
+Django 프로젝트 문서 보기 (https://docs.djangoproject.com/ko/3.1/intro/)
+
 <br><br>
 ## Install
 * 장고 설치
